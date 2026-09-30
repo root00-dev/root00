@@ -68,6 +68,9 @@
   --grid: oklch(0.28 0.012 260 / 45%);
   --accent-faint: oklch(0.85 0.21 145 / 18%);
   --accent-glow: oklch(0.85 0.21 145 / 28%);
+  --scene-primary: #9efb6c;
+  --scene-secondary: #69cbd0;
+  --scene-metal: #617989;
 }
 
 @media (prefers-color-scheme: light) {
@@ -93,6 +96,9 @@
     --grid: oklch(0.85 0.008 260 / 60%);
     --accent-faint: oklch(0.52 0.15 148 / 16%);
     --accent-glow: oklch(0.52 0.15 148 / 20%);
+    --scene-primary: #168c47;
+    --scene-secondary: #168d9b;
+    --scene-metal: #8aa7af;
   }
 }
 
@@ -151,6 +157,20 @@
     linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 75%);
+}
+
+.hero-scene {
+  opacity: 0.82;
+  transform: translateY(9rem);
+  mask-image: linear-gradient(to right, transparent 2%, black 54%);
+}
+
+@media (max-width: 1023px) {
+  .hero-scene {
+    opacity: 0.14;
+    transform: translateY(3rem);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 36%, transparent 100%);
+  }
 }
 
 @utility accent-glow {
