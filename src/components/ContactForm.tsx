@@ -1,9 +1,19 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { site } from "@/data/site";
 
 export function ContactForm() {
   const [service, setService] = useState("");
+
+  useEffect(() => {
+    const selectService = (event: Event) => {
+      if (event instanceof CustomEvent && typeof event.detail === "string") {
+        setService(event.detail);
+      }
+    };
+    window.addEventListener("select-service", selectService);
+    return () => window.removeEventListener("select-service", selectService);
+  }, []);
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
