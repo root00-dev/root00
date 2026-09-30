@@ -161,12 +161,14 @@
 
 .hero-scene {
   opacity: 0.82;
+  transform: translateY(9rem);
   mask-image: linear-gradient(to right, transparent 2%, black 54%);
 }
 
 @media (max-width: 1023px) {
   .hero-scene {
-    opacity: 0.22;
+    opacity: 0.14;
+    transform: translateY(3rem);
     mask-image: linear-gradient(to bottom, transparent 0%, black 36%, transparent 100%);
   }
 }
