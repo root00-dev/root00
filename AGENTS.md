@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+The opening-section 3D sculpture lives in a client-mounted R3F component behind the existing content; keep the page server-rendered for readable text and search indexing.

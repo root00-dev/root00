@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { site } from "@/data/site";
+import { HeroScene } from "./HeroScene";
 
 function useTyped(lines: readonly string[]) {
   const [text, setText] = useState("");
@@ -10,10 +11,10 @@ function useTyped(lines: readonly string[]) {
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
-      setText(lines[0]!);
+      setText(lines[0] ?? "");
       return;
     }
-    const full = lines[index % lines.length]!;
+    const full = lines[index % lines.length] ?? "";
     if (text === full) {
       const hold = setTimeout(() => {
         setText("");
@@ -34,11 +35,7 @@ export function Hero() {
   return (
     <section id="top" className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
       <div aria-hidden className="grid-backdrop pointer-events-none absolute inset-0" />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 h-72 w-[42rem] max-w-[120vw] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
-        style={{ background: "var(--color-primary)" }}
-      />
+      <HeroScene />
 
       <div className="relative mx-auto max-w-6xl px-5">
         <p className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 font-mono text-xs text-muted-foreground">
