@@ -1,14 +1,19 @@
 import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { site } from "@/data/site";
 
-// TODO: wire this up to a backend or Formspree.
-// Formspree: set action="https://formspree.io/f/<your-id>" method="post" on the
-// <form> and delete the handleSubmit below. Or POST to your own endpoint.
 export function ContactForm() {
-  const [sent, setSent] = useState(false);
+  const [service, setService] = useState("");
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSent(true);
+    const form = new FormData(e.currentTarget);
+    const name = String(form.get("name") ?? "").trim();
+    const email = String(form.get("email") ?? "").trim();
+    const message = String(form.get("message") ?? "").trim();
+    const subject = `Project enquiry: ${service || "General"}`;
+    const body = `Hi _root,\n\n${message}\n\nService: ${service || "General enquiry"}\nName: ${name}\nReply to: ${email}`;
+    window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
   const field =
@@ -43,6 +48,16 @@ export function ContactForm() {
         </div>
       </div>
       <div className="mt-4">
+        <label htmlFor="service" className="mb-1.5 block font-mono text-xs text-muted-foreground">
+          What do you need?
+        </label>
+        <select id="service" name="service" value={service} onChange={(event) => setService(event.target.value)} className={field}>
+          <option value="">Choose a service</option>
+          {site.services.map((item) => <option key={item.title} value={item.title}>{item.title}</option>)}
+          <option value="Other">Something else</option>
+        </select>
+      </div>
+      <div className="mt-4">
         <label htmlFor="message" className="mb-1.5 block font-mono text-xs text-muted-foreground">
           Message
         </label>
@@ -56,17 +71,15 @@ export function ContactForm() {
         />
       </div>
 
-      <button
+      <Button
         type="submit"
-        className="mt-5 w-full rounded-md bg-primary px-5 py-3 font-mono text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+        className="mt-5 h-auto w-full py-3 font-mono font-semibold"
       >
-        Send message
-      </button>
+        Open email draft
+      </Button>
 
-      <p id="form-note" role="status" className="mt-3 font-mono text-xs text-muted-foreground">
-        {sent
-          ? "Thanks — message captured. Hook the form up to email delivery to receive it."
-          : "This form isn't connected to email delivery yet."}
+      <p id="form-note" className="mt-3 font-mono text-xs text-muted-foreground">
+        Opens your email app with your message ready to send. Nothing is sent until you press send there.
       </p>
     </form>
   );

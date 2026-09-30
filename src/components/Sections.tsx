@@ -121,6 +121,9 @@ export function Services() {
                 </ul>
                 <a
                   href="#contact"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent("select-service", { detail: s.title }));
+                  }}
                   className="mt-6 inline-flex justify-center rounded-md border border-border px-4 py-2.5 font-mono text-sm font-semibold transition-colors hover:border-primary/60 hover:bg-secondary"
                 >
                   Contact for a quote
