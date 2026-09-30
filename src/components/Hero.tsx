@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { site } from "@/data/site";
-import { HeroScene } from "./HeroScene";
+import { HeroScene, type HeroPointer } from "./HeroScene";
 
 function useTyped(lines: readonly string[]) {
   const [text, setText] = useState("");
@@ -31,11 +31,32 @@ function useTyped(lines: readonly string[]) {
 
 export function Hero() {
   const typed = useTyped(site.terminalLines);
+  const pointer = useRef<HeroPointer>({ x: 0, y: 0, active: false });
+  const cursor = useRef<HTMLSpanElement>(null);
+  const [cursorActive, setCursorActive] = useState(false);
+
+  const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
+    if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width;
+    const active = x >= 0.5;
+    pointer.current.x = Math.max(-1, Math.min(1, (x - 0.75) * 4));
+    pointer.current.y = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2));
+    pointer.current.active = active;
+    if (cursor.current) cursor.current.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
+    if (active !== cursorActive) setCursorActive(active);
+  };
+
+  const handlePointerLeave = () => {
+    pointer.current.active = false;
+    setCursorActive(false);
+  };
 
   return (
-    <section id="top" className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
+    <section id="top" onPointerMove={handlePointerMove} onPointerLeave={handlePointerLeave} className={`relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28 ${cursorActive ? "hero-cursor-active" : ""}`}>
       <div aria-hidden className="grid-backdrop pointer-events-none absolute inset-0" />
-      <HeroScene />
+      <HeroScene pointer={pointer} />
+      <span ref={cursor} aria-hidden="true" className={`hero-cursor ${cursorActive ? "hero-cursor-visible" : ""}`}><span className="hero-cursor-ring" /><span className="hero-cursor-dot" /></span>
 
       <div className="relative mx-auto max-w-6xl px-5">
         <p className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 font-mono text-xs text-muted-foreground">
