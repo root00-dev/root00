@@ -1,11 +1,12 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import * as THREE from "three";
 
 type Palette = { primary: string; secondary: string; metal: string };
+export type HeroPointer = { x: number; y: number; active: boolean };
 
-function Sculpture({ colors, reducedMotion }: { colors: Palette; reducedMotion: boolean }) {
+function Sculpture({ colors, reducedMotion, pointer }: { colors: Palette; reducedMotion: boolean; pointer: RefObject<HeroPointer> }) {
   const core = useRef<THREE.Group>(null);
   const outer = useRef<THREE.Group>(null);
   const dots = useMemo(() => {
@@ -26,11 +27,17 @@ function Sculpture({ colors, reducedMotion }: { colors: Palette; reducedMotion: 
     if (core.current) {
       core.current.rotation.y += dt * 0.16;
       core.current.rotation.x += dt * 0.06;
+      const targetX = pointer.current.active ? pointer.current.y * 0.2 : 0;
+      const targetY = pointer.current.active ? pointer.current.x * 0.3 : 0;
+      core.current.position.x = THREE.MathUtils.damp(core.current.position.x, targetY, 2.8, dt);
+      core.current.position.y = THREE.MathUtils.damp(core.current.position.y, -targetX, 2.8, dt);
     }
     if (outer.current) {
       outer.current.rotation.z -= dt * 0.055;
       outer.current.rotation.y += dt * 0.035;
       outer.current.position.y = Math.sin(state.clock.elapsedTime * 0.55) * 0.08;
+      outer.current.rotation.x = THREE.MathUtils.damp(outer.current.rotation.x, 0.28 + (pointer.current.active ? pointer.current.y * 0.32 : 0), 2.5, dt);
+      outer.current.rotation.y = THREE.MathUtils.damp(outer.current.rotation.y, pointer.current.active ? pointer.current.x * 0.36 : 0, 2.5, dt);
     }
   });
 
@@ -83,7 +90,7 @@ function Sculpture({ colors, reducedMotion }: { colors: Palette; reducedMotion: 
   );
 }
 
-export function HeroScene() {
+export function HeroScene({ pointer }: { pointer: RefObject<HeroPointer> }) {
   const [colors, setColors] = useState<Palette | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -101,7 +108,7 @@ export function HeroScene() {
     <div aria-hidden="true" className="hero-scene pointer-events-none absolute inset-y-0 right-0 z-0 w-full lg:w-[59%]">
       {colors && (
         <Canvas camera={{ position: [0, 0, 8.5], fov: 48 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true }} frameloop={reducedMotion ? "demand" : "always"}>
-          <Sculpture colors={colors} reducedMotion={reducedMotion} />
+          <Sculpture colors={colors} reducedMotion={reducedMotion} pointer={pointer} />
         </Canvas>
       )}
     </div>

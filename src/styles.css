@@ -173,6 +173,64 @@
   }
 }
 
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hero-cursor-active,
+  .hero-cursor-active * {
+    cursor: none !important;
+  }
+
+  .hero-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 180ms ease;
+  }
+
+  .hero-cursor-visible {
+    opacity: 1;
+  }
+
+  .hero-cursor-ring {
+    position: absolute;
+    inset: -23px;
+    border: 1px solid var(--scene-secondary);
+    border-radius: 50%;
+    box-shadow: 0 0 16px var(--accent-glow), inset 0 0 12px var(--accent-faint);
+    transform: scale(0.35) rotate(-35deg);
+    transition: transform 300ms cubic-bezier(0.2, 1.4, 0.4, 1);
+  }
+
+  .hero-cursor-visible .hero-cursor-ring {
+    transform: scale(1) rotate(0deg);
+  }
+
+  .hero-cursor-ring::before,
+  .hero-cursor-ring::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 9px;
+    height: 1px;
+    background: var(--scene-primary);
+  }
+
+  .hero-cursor-ring::before { left: -5px; }
+  .hero-cursor-ring::after { right: -5px; }
+
+  .hero-cursor-dot {
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--scene-primary);
+    box-shadow: 0 0 10px var(--scene-primary);
+  }
+}
+
 @utility accent-glow {
   box-shadow: var(--shadow-glow);
 }
