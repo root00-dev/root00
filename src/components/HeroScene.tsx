@@ -16,7 +16,7 @@ function Sculpture({
   colors: Palette;
   reducedMotion: boolean;
   pointer: RefObject<HeroPointer>;
-  onRotate?: (info: RotateInfo) => void;
+  onRotate?: ((info: RotateInfo) => void) | undefined;
 }) {
   const core = useRef<THREE.Group>(null);
   const outer = useRef<THREE.Group>(null);

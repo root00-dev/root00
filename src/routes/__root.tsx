@@ -35,8 +35,8 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent(props: { error: unknown; reset: () => void }) {
-  const error = props.error instanceof Error ? props.error : new Error(String(props.error));
+function ErrorComponent({ error: rawError, reset }: { error: unknown; reset: () => void }) {
+  const error = rawError instanceof Error ? rawError : new Error(String(rawError));
   console.error(error);
   const router = useRouter();
   useEffect(() => {
