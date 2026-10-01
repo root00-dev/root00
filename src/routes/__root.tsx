@@ -3,6 +3,7 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  lazyRouteComponent,
   useRouter,
   HeadContent,
   Scripts,
@@ -34,7 +35,8 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent(props: { error: unknown; reset: () => void }) {
+  const error = props.error instanceof Error ? props.error : new Error(String(props.error));
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -105,8 +107,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   }),
   shellComponent: RootShell,
   component: RootComponent,
-  notFoundComponent: NotFoundComponent,
-  errorComponent: ErrorComponent,
+  notFoundComponent: lazyRouteComponent(() => Promise.resolve({ default: NotFoundComponent })),
+  errorComponent: lazyRouteComponent(() => Promise.resolve({ default: ErrorComponent })),
 });
 
 function RootShell({ children }: { children: ReactNode }) {

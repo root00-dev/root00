@@ -18,6 +18,7 @@ export const site = {
   email: "hello@stylenet.co.zw",
   whatsapp: "+263771234567", // digits only for wa.me
   github: "https://github.com/",
+  sceneLabel: "SCULPTURE_V.03",
 
   about: [
     "I'm _root, a developer based in Harare running StyleNET Devs. I build web and software products end to end — from the data model to the deploy script — and I care most about things that stay fast and stay up.",
