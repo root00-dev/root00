@@ -5,10 +5,22 @@ import * as THREE from "three";
 
 type Palette = { primary: string; secondary: string; metal: string };
 export type HeroPointer = { x: number; y: number; active: boolean };
+export type RotateInfo = { x: number; y: number };
 
-function Sculpture({ colors, reducedMotion, pointer }: { colors: Palette; reducedMotion: boolean; pointer: RefObject<HeroPointer> }) {
+function Sculpture({
+  colors,
+  reducedMotion,
+  pointer,
+  onRotate,
+}: {
+  colors: Palette;
+  reducedMotion: boolean;
+  pointer: RefObject<HeroPointer>;
+  onRotate?: ((info: RotateInfo) => void) | undefined;
+}) {
   const core = useRef<THREE.Group>(null);
   const outer = useRef<THREE.Group>(null);
+  const report = useRef(0);
   const dots = useMemo(() => {
     const positions = new Float32Array(90 * 3);
     for (let i = 0; i < 90; i++) {
@@ -39,13 +51,20 @@ function Sculpture({ colors, reducedMotion, pointer }: { colors: Palette; reduce
       outer.current.rotation.x = THREE.MathUtils.damp(outer.current.rotation.x, 0.28 + (pointer.current.active ? pointer.current.y * 0.32 : 0), 2.5, dt);
       outer.current.rotation.y = THREE.MathUtils.damp(outer.current.rotation.y, pointer.current.active ? pointer.current.x * 0.36 : 0, 2.5, dt);
     }
+    if (onRotate && core.current) {
+      report.current += dt;
+      if (report.current >= 0.15) {
+        report.current = 0;
+        onRotate({ x: core.current.rotation.x, y: core.current.rotation.y });
+      }
+    }
   });
 
   return (
     <>
       <ambientLight intensity={0.6} />
-      <pointLight position={[3, 4, 5]} color={colors.primary} intensity={25} />
-      <pointLight position={[-4, -2, 2]} color={colors.secondary} intensity={15} />
+      <pointLight position={[3, 4, 5]} color={colors.primary} intensity={35} />
+      <pointLight position={[-4, -2, 2]} color={colors.secondary} intensity={22} />
       <Environment>
         <Lightformer intensity={2} position={[0, 5, 2]} scale={[10, 10, 1]} />
         <Lightformer intensity={1} color={colors.secondary} position={[-5, 0, 1]} scale={[3, 8, 1]} />
@@ -54,32 +73,32 @@ function Sculpture({ colors, reducedMotion, pointer }: { colors: Palette; reduce
       <group ref={outer} rotation={[0.28, -0.2, -0.28]}>
         <mesh rotation={[0.38, 0.2, 0.1]}>
           <torusGeometry args={[2.25, 0.012, 6, 180]} />
-          <meshBasicMaterial color={colors.primary} transparent opacity={0.58} />
+          <meshBasicMaterial color={colors.primary} transparent opacity={0.72} />
         </mesh>
         <mesh rotation={[1.17, 0.42, 0.3]}>
           <torusGeometry args={[2.7, 0.009, 6, 180]} />
-          <meshBasicMaterial color={colors.secondary} transparent opacity={0.35} />
+          <meshBasicMaterial color={colors.secondary} transparent opacity={0.48} />
         </mesh>
         <mesh rotation={[0.5, 1.2, 0.8]}>
           <torusGeometry args={[1.83, 0.008, 6, 180]} />
-          <meshBasicMaterial color={colors.metal} transparent opacity={0.35} />
+          <meshBasicMaterial color={colors.metal} transparent opacity={0.5} />
         </mesh>
         <points>
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" args={[dots, 3]} />
           </bufferGeometry>
-          <pointsMaterial color={colors.secondary} size={0.025} transparent opacity={0.7} sizeAttenuation />
+          <pointsMaterial color={colors.secondary} size={0.028} transparent opacity={0.85} sizeAttenuation />
         </points>
       </group>
 
       <group ref={core} rotation={[0.3, 0.4, 0.12]}>
         <mesh>
           <icosahedronGeometry args={[1.33, 2]} />
-          <meshPhysicalMaterial color={colors.metal} metalness={0.8} roughness={0.28} flatShading transparent opacity={0.3} depthWrite={false} side={THREE.DoubleSide} />
+          <meshPhysicalMaterial color={colors.metal} metalness={0.8} roughness={0.28} flatShading transparent opacity={0.34} depthWrite={false} side={THREE.DoubleSide} />
         </mesh>
         <mesh scale={1.01}>
           <icosahedronGeometry args={[1.33, 2]} />
-          <meshBasicMaterial color={colors.primary} wireframe transparent opacity={0.65} />
+          <meshBasicMaterial color={colors.primary} wireframe transparent opacity={0.85} />
         </mesh>
         <mesh rotation={[0.3, 0.4, 0]}>
           <icosahedronGeometry args={[0.73, 1]} />
@@ -90,7 +109,13 @@ function Sculpture({ colors, reducedMotion, pointer }: { colors: Palette; reduce
   );
 }
 
-export function HeroScene({ pointer }: { pointer: RefObject<HeroPointer> }) {
+export function HeroScene({
+  pointer,
+  onRotate,
+}: {
+  pointer: RefObject<HeroPointer>;
+  onRotate?: (info: RotateInfo) => void;
+}) {
   const [colors, setColors] = useState<Palette | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -108,7 +133,7 @@ export function HeroScene({ pointer }: { pointer: RefObject<HeroPointer> }) {
     <div aria-hidden="true" className="hero-scene pointer-events-none absolute inset-y-0 right-0 z-0 w-full lg:w-[59%]">
       {colors && (
         <Canvas camera={{ position: [0, 0, 8.5], fov: 48 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true }} frameloop={reducedMotion ? "demand" : "always"}>
-          <Sculpture colors={colors} reducedMotion={reducedMotion} pointer={pointer} />
+          <Sculpture colors={colors} reducedMotion={reducedMotion} pointer={pointer} onRotate={onRotate} />
         </Canvas>
       )}
     </div>
