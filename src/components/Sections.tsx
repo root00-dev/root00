@@ -2,12 +2,21 @@ import { site, mailLink, waLink } from "@/data/site";
 import { Reveal } from "./Reveal";
 import { ContactForm } from "./ContactForm";
 
-function SectionHeading({ index, title }: { index: string; title: string }) {
+function SectionHeading({ index, title, path }: { index: string; title: string; path: string }) {
   return (
-    <h2 className="text-2xl font-bold sm:text-3xl">
-      <span className="mr-2 font-mono text-primary">{index}</span>
-      {title}
-    </h2>
+    <div>
+      <p aria-hidden className="font-mono text-xs tracking-[0.2em] text-primary/70">
+        {path}
+      </p>
+      <div className="mt-2.5 flex items-center gap-5">
+        <h2 className="text-2xl font-bold sm:text-3xl">
+          <span className="mr-2 font-mono text-primary">{index}</span>
+          {title}
+        </h2>
+        <span aria-hidden className="h-px flex-1 bg-border" />
+        <span aria-hidden className="h-[3px] w-14 bg-primary" />
+      </div>
+    </div>
   );
 }
 
@@ -15,7 +24,7 @@ export function About() {
   return (
     <section id="about" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-20">
       <Reveal>
-        <SectionHeading index="01." title="About" />
+        <SectionHeading index="01." title="About" path="~/about" />
       </Reveal>
       <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Reveal delay={60}>
@@ -27,12 +36,14 @@ export function About() {
         </Reveal>
         <Reveal delay={120}>
           <div className="rounded-xl border border-border bg-surface p-5">
-            <h3 className="font-mono text-sm text-muted-foreground">~/stack</h3>
+            <p className="font-mono text-xs text-muted-foreground">
+              <span className="text-primary">root@stylenet</span>:~$ cat skills.txt
+            </p>
             <ul className="mt-4 flex flex-wrap gap-2">
               {site.skills.map((s) => (
                 <li
                   key={s}
-                  className="rounded-md border border-border bg-background px-2.5 py-1.5 font-mono text-xs text-foreground"
+                  className="rounded-md border border-border bg-background px-2.5 py-1.5 font-mono text-xs text-foreground transition-colors hover:border-primary/60 hover:text-primary"
                 >
                   {s}
                 </li>
@@ -49,7 +60,7 @@ export function Projects() {
   return (
     <section id="projects" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-20">
       <Reveal>
-        <SectionHeading index="02." title="Projects" />
+        <SectionHeading index="02." title="Projects" path="~/projects" />
         <p className="mt-3 max-w-xl text-muted-foreground">
           A selection of things I've designed, built and deployed.
         </p>
@@ -60,13 +71,18 @@ export function Projects() {
             <Reveal delay={i * 60}>
               <a
                 href={p.link}
-                className="group flex h-full flex-col rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary/60"
+                className="card-lift group flex h-full flex-col rounded-xl border border-border bg-surface p-5"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-base font-semibold text-foreground">{p.title}</h3>
+                  <div className="min-w-0">
+                    <p aria-hidden className="font-mono text-[11px] text-primary/60">
+                      {String(i + 1).padStart(3, "0")}
+                    </p>
+                    <h3 className="mt-1 text-base font-semibold text-foreground">{p.title}</h3>
+                  </div>
                   <span
                     aria-hidden
-                    className="font-mono text-primary transition-transform group-hover:translate-x-0.5"
+                    className="font-mono text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary"
                   >
                     ↗
                   </span>
@@ -98,7 +114,7 @@ export function Services() {
     <section id="services" className="scroll-mt-24 border-y border-border bg-surface/40 py-20">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal>
-          <SectionHeading index="03." title="Services" />
+          <SectionHeading index="03." title="Services" path="~/services" />
           <p className="mt-3 max-w-xl text-muted-foreground">
             Build it, host it, keep it running — under one roof.
           </p>
@@ -106,8 +122,11 @@ export function Services() {
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {site.services.map((s, i) => (
             <Reveal key={s.title} delay={i * 70} className="h-full">
-              <article className="flex h-full flex-col rounded-xl border border-border bg-background p-6">
-                <h3 className="text-lg font-semibold">{s.title}</h3>
+              <article className="card-lift flex h-full flex-col rounded-xl border border-border bg-background p-6">
+                <p aria-hidden className="font-mono text-[11px] text-primary/60">
+                  {String(i + 1).padStart(2, "0")}
+                </p>
+                <h3 className="mt-1 text-lg font-semibold">{s.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
                 <ul className="mt-4 flex-1 space-y-2">
                   {s.points.map((pt) => (
@@ -124,7 +143,7 @@ export function Services() {
                   onClick={() => {
                     window.dispatchEvent(new CustomEvent("select-service", { detail: s.title }));
                   }}
-                  className="mt-6 inline-flex justify-center rounded-md border border-border px-4 py-2.5 font-mono text-sm font-semibold transition-colors hover:border-primary/60 hover:bg-secondary"
+                  className="mt-6 inline-flex justify-center rounded-md border border-border px-4 py-2.5 font-mono text-sm font-semibold transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
                 >
                   Contact for a quote
                 </a>
@@ -141,7 +160,7 @@ export function Contact() {
   return (
     <section id="contact" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-20">
       <Reveal>
-        <SectionHeading index="04." title="Contact" />
+        <SectionHeading index="04." title="Contact" path="~/contact" />
         <p className="mt-3 max-w-xl text-muted-foreground">
           Tell me about the project or the hosting you need. I usually reply within a day.
         </p>
@@ -158,10 +177,18 @@ export function Contact() {
               <li key={c.label}>
                 <a
                   href={c.href}
-                  className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface px-4 py-3.5 transition-colors hover:border-primary/60"
+                  className="card-lift group flex items-center justify-between gap-4 rounded-lg border border-border bg-surface px-4 py-3.5"
                 >
                   <span className="font-mono text-xs text-muted-foreground">{c.label}</span>
-                  <span className="min-w-0 truncate font-mono text-sm text-foreground">{c.value}</span>
+                  <span className="flex min-w-0 items-center gap-2 font-mono text-sm text-foreground">
+                    <span className="min-w-0 truncate">{c.value}</span>
+                    <span
+                      aria-hidden
+                      className="text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      ↗
+                    </span>
+                  </span>
                 </a>
               </li>
             ))}

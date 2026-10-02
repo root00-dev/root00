@@ -11,12 +11,38 @@ const links = [
 export function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 12);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px" },
+    );
+    links.forEach((l) => {
+      const el = document.getElementById(l.href.slice(1));
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -37,14 +63,17 @@ export function Nav() {
             <a
               key={l.href}
               href={l.href}
-              className="rounded-md px-3 py-2 font-mono text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              aria-current={active === l.href.slice(1) ? "true" : undefined}
+              className={`rounded-md px-3 py-2 font-mono text-sm transition-colors hover:bg-secondary hover:text-foreground ${
+                active === l.href.slice(1) ? "text-primary" : "text-muted-foreground"
+              }`}
             >
               {l.label}
             </a>
           ))}
           <a
             href="#contact"
-            className="ml-2 rounded-md bg-primary px-3.5 py-2 font-mono text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            className="btn-hard ml-2 rounded-md bg-primary px-3.5 py-2 font-mono text-sm font-semibold text-primary-foreground"
           >
             Hire me
           </a>
@@ -74,7 +103,9 @@ export function Nav() {
                 <a
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-md px-2 py-3 font-mono text-sm text-muted-foreground hover:text-foreground"
+                  className={`block rounded-md px-2 py-3 font-mono text-sm hover:text-foreground ${
+                    active === l.href.slice(1) ? "text-primary" : "text-muted-foreground"
+                  }`}
                 >
                   {l.label}
                 </a>
@@ -83,6 +114,19 @@ export function Nav() {
           </ul>
         </nav>
       )}
+
+      {/* Scroll progress line along the bottom edge of the header */}
+      <div
+        aria-hidden
+        className={`absolute inset-x-0 bottom-0 h-[2px] transition-opacity ${
+          scrolled ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <div
+          className="h-full origin-left bg-primary"
+          style={{ transform: `scaleX(${progress})` }}
+        />
+      </div>
     </header>
   );
 }

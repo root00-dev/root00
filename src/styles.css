@@ -367,3 +367,19 @@
     transform: none;
   }
 }
+
+/* Card hover treatment: accent border, faint glow ring, slight lift */
+@utility card-lift {
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+
+  &:hover {
+    border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
+    box-shadow:
+      0 0 0 1px var(--accent-faint),
+      0 16px 44px -20px var(--accent-glow);
+    transform: translateY(-2px);
+  }
+}
