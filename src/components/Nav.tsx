@@ -41,7 +41,8 @@ export function Nav() {
       { rootMargin: "-40% 0px -55% 0px" },
     );
     links.forEach((l) => {
-      const el = document.getElementById(l.href.slice(1));
+      const id = l.href.split("#")[1];
+      const el = id ? document.getElementById(id) : null;
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
@@ -61,18 +62,21 @@ export function Nav() {
         </a>
 
         <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              aria-current={active === l.href.slice(1) ? "true" : undefined}
-              className={`rounded-md px-3 py-2 font-mono text-sm transition-colors hover:bg-secondary hover:text-foreground ${
-                active === l.href.slice(1) ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              {l.label}
-            </a>
-          ))}
+          {links.map((l) => {
+            const id = l.href.split("#")[1];
+            return (
+              <a
+                key={l.href}
+                href={l.href}
+                aria-current={id && active === id ? "true" : undefined}
+                className={`rounded-md px-3 py-2 font-mono text-sm transition-colors hover:bg-secondary hover:text-foreground ${
+                  id && active === id ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {l.label}
+              </a>
+            );
+          })}
           <a
             href="/#contact"
             className="btn-hard ml-2 rounded-md bg-primary px-3.5 py-2 font-mono text-sm font-semibold text-primary-foreground"
@@ -106,7 +110,9 @@ export function Nav() {
                   href={l.href}
                   onClick={() => setOpen(false)}
                   className={`block rounded-md px-2 py-3 font-mono text-sm hover:text-foreground ${
-                    active === l.href.slice(1) ? "text-primary" : "text-muted-foreground"
+                    l.href.includes("#") && active === l.href.split("#")[1]
+                      ? "text-primary"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {l.label}
