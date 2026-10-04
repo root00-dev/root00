@@ -54,7 +54,7 @@ export function Nav() {
       }`}
     >
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 sm:flex sm:justify-between">
-        <a href="#top" className="flex min-w-0 items-center gap-2 font-mono text-sm font-bold">
+        <a href="/#top" className="flex min-w-0 items-center gap-2 font-mono text-sm font-bold">
           <span className="text-primary">$</span>
           <span className="truncate">{site.handle}</span>
           <span className="hidden truncate text-muted-foreground sm:inline">/ {site.name}</span>
@@ -74,7 +74,7 @@ export function Nav() {
             </a>
           ))}
           <a
-            href="#contact"
+            href="/#contact"
             className="btn-hard ml-2 rounded-md bg-primary px-3.5 py-2 font-mono text-sm font-semibold text-primary-foreground"
           >
             Hire me
@@ -100,7 +100,7 @@ export function Nav() {
           className="border-t border-border bg-background px-5 py-3 sm:hidden"
         >
           <ul className="flex flex-col">
-            {[...links, { href: "#contact", label: "Hire me" }].map((l) => (
+            {[...links, { href: "/#contact", label: "Hire me" }].map((l) => (
               <li key={l.label}>
                 <a
                   href={l.href}
