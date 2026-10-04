@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { site } from "@/data/site";
 
+// Anchors are absolute ("/#about") so they also work from other pages like /blog.
 const links = [
-  { href: "#about", label: "About" },
-  { href: "#projects", label: "Projects" },
-  { href: "#services", label: "Services" },
-  { href: "#contact", label: "Contact" },
+  { href: "/#about", label: "About" },
+  { href: "/#projects", label: "Projects" },
+  { href: "/#services", label: "Services" },
+  { href: "/#contact", label: "Contact" },
+  { href: "/blog", label: "Blog" },
 ];
 
 export function Nav() {
