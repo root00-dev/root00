@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { About, Projects, Services, Contact, Footer } from "@/components/Sections";
 import { site, mailLink } from "@/data/site";
@@ -62,7 +61,6 @@ function Index() {
       >
         Skip to content
       </a>
-      <Nav />
       <main id="main">
         <Hero />
         <About />

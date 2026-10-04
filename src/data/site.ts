@@ -77,6 +77,33 @@ export const site = {
     },
   ],
 
+  posts: [
+    {
+      slug: "why-i-host-what-i-build",
+      title: "Why I host everything I build",
+      excerpt:
+        "Handing over a project without the server is half a job. Here's why I keep development and hosting under one roof.",
+      date: "2026-09-14",
+      tags: ["Hosting", "Opinion"],
+    },
+    {
+      slug: "deploying-node-on-a-fresh-vps",
+      title: "Deploying a Node app on a fresh VPS in 15 minutes",
+      excerpt:
+        "Nginx, Certbot, a systemd unit and a firewall — the exact checklist I run on every new box.",
+      date: "2026-08-02",
+      tags: ["Linux", "Nginx", "Tutorial"],
+    },
+    {
+      slug: "offline-first-in-zimbabwe",
+      title: "Building offline-first apps for Zimbabwean networks",
+      excerpt:
+        "Data is expensive and connections drop. What I learned building a POS that keeps working through both.",
+      date: "2026-06-21",
+      tags: ["PWA", "Case study"],
+    },
+  ],
+
   services: [
     {
       title: "Web & Software Development",

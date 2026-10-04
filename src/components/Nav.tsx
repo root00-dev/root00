@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { site } from "@/data/site";
 
+// Anchors are absolute ("/#about") so they also work from other pages like /blog.
 const links = [
-  { href: "#about", label: "About" },
-  { href: "#projects", label: "Projects" },
-  { href: "#services", label: "Services" },
-  { href: "#contact", label: "Contact" },
+  { href: "/#about", label: "About" },
+  { href: "/#projects", label: "Projects" },
+  { href: "/#services", label: "Services" },
+  { href: "/#contact", label: "Contact" },
+  { href: "/blog", label: "Blog" },
 ];
 
 export function Nav() {
@@ -39,7 +41,8 @@ export function Nav() {
       { rootMargin: "-40% 0px -55% 0px" },
     );
     links.forEach((l) => {
-      const el = document.getElementById(l.href.slice(1));
+      const id = l.href.split("#")[1];
+      const el = id ? document.getElementById(id) : null;
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
@@ -52,27 +55,30 @@ export function Nav() {
       }`}
     >
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 sm:flex sm:justify-between">
-        <a href="#top" className="flex min-w-0 items-center gap-2 font-mono text-sm font-bold">
+        <a href="/#top" className="flex min-w-0 items-center gap-2 font-mono text-sm font-bold">
           <span className="text-primary">$</span>
           <span className="truncate">{site.handle}</span>
           <span className="hidden truncate text-muted-foreground sm:inline">/ {site.name}</span>
         </a>
 
         <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              aria-current={active === l.href.slice(1) ? "true" : undefined}
-              className={`rounded-md px-3 py-2 font-mono text-sm transition-colors hover:bg-secondary hover:text-foreground ${
-                active === l.href.slice(1) ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              {l.label}
-            </a>
-          ))}
+          {links.map((l) => {
+            const id = l.href.split("#")[1];
+            return (
+              <a
+                key={l.href}
+                href={l.href}
+                aria-current={id && active === id ? "true" : undefined}
+                className={`rounded-md px-3 py-2 font-mono text-sm transition-colors hover:bg-secondary hover:text-foreground ${
+                  id && active === id ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {l.label}
+              </a>
+            );
+          })}
           <a
-            href="#contact"
+            href="/#contact"
             className="btn-hard ml-2 rounded-md bg-primary px-3.5 py-2 font-mono text-sm font-semibold text-primary-foreground"
           >
             Hire me
@@ -98,13 +104,15 @@ export function Nav() {
           className="border-t border-border bg-background px-5 py-3 sm:hidden"
         >
           <ul className="flex flex-col">
-            {[...links, { href: "#contact", label: "Hire me" }].map((l) => (
+            {[...links, { href: "/#contact", label: "Hire me" }].map((l) => (
               <li key={l.label}>
                 <a
                   href={l.href}
                   onClick={() => setOpen(false)}
                   className={`block rounded-md px-2 py-3 font-mono text-sm hover:text-foreground ${
-                    active === l.href.slice(1) ? "text-primary" : "text-muted-foreground"
+                    l.href.includes("#") && active === l.href.split("#")[1]
+                      ? "text-primary"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {l.label}
