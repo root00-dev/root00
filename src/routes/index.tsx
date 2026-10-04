@@ -62,7 +62,6 @@ function Index() {
       >
         Skip to content
       </a>
-      <Nav />
       <main id="main">
         <Hero />
         <About />
