@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { site } from "@/data/site";
+import { site, waLink } from "@/data/site";
 
 export function ContactForm() {
   const [service, setService] = useState("");
@@ -21,8 +21,17 @@ export function ContactForm() {
     const name = String(form.get("name") ?? "").trim();
     const email = String(form.get("email") ?? "").trim();
     const message = String(form.get("message") ?? "").trim();
+    const topic = service || "General enquiry";
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+
+    if (submitter?.value === "whatsapp") {
+      const text = `Hi ${site.handle}, I'm ${name} (${email}).\n\n${message}\n\nService: ${topic}`;
+      window.open(`${waLink}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+      return;
+    }
+
     const subject = `Project enquiry: ${service || "General"}`;
-    const body = `Hi _root,\n\n${message}\n\nService: ${service || "General enquiry"}\nName: ${name}\nReply to: ${email}`;
+    const body = `Hi ${site.handle},\n\n${message}\n\nService: ${topic}\nName: ${name}\nReply to: ${email}`;
     window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
@@ -40,7 +49,14 @@ export function ContactForm() {
           <label htmlFor="name" className="mb-1.5 block font-mono text-xs text-muted-foreground">
             Name
           </label>
-          <input id="name" name="name" required autoComplete="name" className={field} placeholder="Tanaka M." />
+          <input
+            id="name"
+            name="name"
+            required
+            autoComplete="name"
+            className={field}
+            placeholder="Tanaka M."
+          />
         </div>
         <div>
           <label htmlFor="email" className="mb-1.5 block font-mono text-xs text-muted-foreground">
@@ -61,9 +77,19 @@ export function ContactForm() {
         <label htmlFor="service" className="mb-1.5 block font-mono text-xs text-muted-foreground">
           What do you need?
         </label>
-        <select id="service" name="service" value={service} onChange={(event) => setService(event.target.value)} className={field}>
+        <select
+          id="service"
+          name="service"
+          value={service}
+          onChange={(event) => setService(event.target.value)}
+          className={field}
+        >
           <option value="">Choose a service</option>
-          {site.services.map((item) => <option key={item.title} value={item.title}>{item.title}</option>)}
+          {site.services.map((item) => (
+            <option key={item.title} value={item.title}>
+              {item.title}
+            </option>
+          ))}
           <option value="Other">Something else</option>
         </select>
       </div>
@@ -81,15 +107,29 @@ export function ContactForm() {
         />
       </div>
 
-      <Button
-        type="submit"
-        className="mt-5 h-auto w-full py-3 font-mono font-semibold"
-      >
-        Open email draft
-      </Button>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <Button
+          type="submit"
+          name="via"
+          value="whatsapp"
+          className="h-auto w-full py-3 font-mono font-semibold"
+        >
+          Send on WhatsApp
+        </Button>
+        <Button
+          type="submit"
+          name="via"
+          value="email"
+          variant="outline"
+          className="h-auto w-full py-3 font-mono font-semibold"
+        >
+          Send by email
+        </Button>
+      </div>
 
       <p id="form-note" className="mt-3 font-mono text-xs text-muted-foreground">
-        Opens your email app with your message ready to send. Nothing is sent until you press send there.
+        Opens WhatsApp or your email app with the message filled in. Nothing is sent until you press
+        send there.
       </p>
     </form>
   );

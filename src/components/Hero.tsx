@@ -1,6 +1,47 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { site } from "@/data/site";
-import { HeroScene, type HeroPointer } from "./HeroScene";
+import type { HeroPointer, RotateInfo } from "./HeroScene";
+
+// three.js is ~1 MB of JS; keep it out of the initial bundle and only fetch it
+// on desktop-sized screens once the page is idle.
+const HeroScene = lazy(() => import("./HeroScene").then((m) => ({ default: m.HeroScene })));
+
+type NetworkInformation = { saveData?: boolean; effectiveType?: string };
+
+function useSceneGate(section: React.RefObject<HTMLElement | null>) {
+  const [enabled, setEnabled] = useState(false);
+  const [active, setActive] = useState(true);
+
+  useEffect(() => {
+    const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
+    const lowData = connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType ?? "");
+    if (!window.matchMedia("(min-width: 1024px)").matches || lowData) return;
+
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const id = idle(() => setEnabled(true), { timeout: 2000 });
+    return () => cancel(id);
+  }, []);
+
+  useEffect(() => {
+    const el = section.current;
+    if (!enabled || !el) return;
+    let inView = true;
+    const update = () => setActive(inView && document.visibilityState === "visible");
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry?.isIntersecting ?? true;
+      update();
+    });
+    io.observe(el);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, [enabled, section]);
+
+  return { enabled, active };
+}
 
 function useTyped(lines: readonly string[]) {
   const [text, setText] = useState("");
@@ -39,22 +80,32 @@ export function Hero() {
   const typed = useTyped(site.terminalLines);
   const pointer = useRef<HeroPointer>({ x: 0, y: 0, active: false });
   const cursor = useRef<HTMLSpanElement>(null);
+  const section = useRef<HTMLElement>(null);
+  const telemetryX = useRef<HTMLDivElement>(null);
+  const telemetryY = useRef<HTMLDivElement>(null);
   const [cursorActive, setCursorActive] = useState(false);
-  const [telemetry, setTelemetry] = useState({ x: 0, y: 0 });
+  const scene = useSceneGate(section);
 
-  const handleTelemetry = useCallback((next: { x: number; y: number }) => {
-    setTelemetry(next);
+  // Written straight to the DOM so the 3D loop never re-renders the hero.
+  const handleTelemetry = useCallback((next: RotateInfo) => {
+    if (telemetryX.current) telemetryX.current.textContent = `X: ${formatAngle(next.y)}`;
+    if (telemetryY.current) telemetryY.current.textContent = `Y: ${formatAngle(next.x)}`;
   }, []);
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
-    if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!scene.enabled || event.pointerType !== "mouse") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - bounds.left) / bounds.width;
     const active = x >= 0.5;
     pointer.current.x = Math.max(-1, Math.min(1, (x - 0.75) * 4));
-    pointer.current.y = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2));
+    pointer.current.y = Math.max(
+      -1,
+      Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2),
+    );
     pointer.current.active = active;
-    if (cursor.current) cursor.current.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
+    if (cursor.current)
+      cursor.current.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
     if (active !== cursorActive) setCursorActive(active);
   };
 
@@ -66,20 +117,35 @@ export function Hero() {
   return (
     <section
       id="top"
+      ref={section}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       className={`relative flex min-h-[100svh] flex-col overflow-hidden ${cursorActive ? "hero-cursor-active" : ""}`}
     >
       <div aria-hidden className="grid-backdrop pointer-events-none absolute inset-0" />
-      <HeroScene pointer={pointer} onRotate={handleTelemetry} />
-      <span ref={cursor} aria-hidden="true" className={`hero-cursor ${cursorActive ? "hero-cursor-visible" : ""}`}>
+      {scene.enabled && (
+        <Suspense fallback={null}>
+          <HeroScene pointer={pointer} onRotate={handleTelemetry} active={scene.active} />
+        </Suspense>
+      )}
+      <span
+        ref={cursor}
+        aria-hidden="true"
+        className={`hero-cursor ${cursorActive ? "hero-cursor-visible" : ""}`}
+      >
         <span className="hero-cursor-ring" />
         <span className="hero-cursor-dot" />
       </span>
 
       {/* Corner crosshair accents */}
-      <div aria-hidden className="pointer-events-none absolute left-6 top-28 hidden h-7 w-7 border-l-2 border-t-2 border-border sm:block" />
-      <div aria-hidden className="pointer-events-none absolute bottom-10 right-6 hidden h-7 w-7 border-b-2 border-r-2 border-border sm:block" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-6 top-28 hidden h-7 w-7 border-l-2 border-t-2 border-border sm:block"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-10 right-6 hidden h-7 w-7 border-b-2 border-r-2 border-border sm:block"
+      />
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 items-center px-5 pb-24 pt-32 sm:pt-36">
         <div className="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-8">
@@ -87,8 +153,14 @@ export function Hero() {
           <div className="flex flex-col items-start gap-8 lg:col-span-7">
             <p className="inline-flex items-center gap-2.5 rounded-full border border-border bg-surface px-4 py-1.5 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground shadow-sm">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" aria-hidden />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" aria-hidden />
+                <span
+                  className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60"
+                  aria-hidden
+                />
+                <span
+                  className="relative inline-flex h-2 w-2 rounded-full bg-primary"
+                  aria-hidden
+                />
               </span>
               {site.location} · available for work
             </p>
@@ -136,8 +208,8 @@ export function Hero() {
                 {site.sceneLabel}
               </span>
               <div className="absolute -left-7 top-1/4 space-y-1 border-l border-primary/60 pl-2 font-mono text-[10px] uppercase tracking-tight text-muted-foreground/70">
-                <div>X: {formatAngle(telemetry.y)}</div>
-                <div>Y: {formatAngle(telemetry.x)}</div>
+                <div ref={telemetryX}>X: {formatAngle(0)}</div>
+                <div ref={telemetryY}>Y: {formatAngle(0)}</div>
               </div>
             </div>
           </div>
@@ -145,7 +217,10 @@ export function Hero() {
       </div>
 
       {/* Bottom fade + scroll cue */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent"
+      />
       <a
         href="#about"
         className="group relative z-10 mx-auto mb-5 flex flex-col items-center gap-2 transition-opacity hover:opacity-70"

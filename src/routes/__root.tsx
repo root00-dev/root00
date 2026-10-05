@@ -8,36 +8,55 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Nav } from "@/components/Nav";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { themeInitScript } from "@/lib/theme";
+import { ogImage } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+    <main className="flex min-h-screen items-center justify-center bg-background px-5">
+      <div className="terminal-window w-full max-w-lg px-6 py-6 [transform:none] hover:[transform:none]">
+        <div className="flex gap-1.5" aria-hidden>
+          <span className="h-2.5 w-2.5 rounded-full bg-dot-red/60" />
+          <span className="h-2.5 w-2.5 rounded-full bg-dot-amber/60" />
+          <span className="h-2.5 w-2.5 rounded-full bg-dot-green/60" />
+        </div>
+        <p className="mt-5 font-mono text-sm text-terminal-muted">
+          <span className="text-primary">➜</span> cd {"<this page>"}
         </p>
-        <div className="mt-6">
+        <h1 className="mt-2 font-mono text-lg text-terminal-fg">404: no such file or directory</h1>
+        <p className="mt-3 text-sm text-terminal-muted">
+          The page you're looking for doesn't exist or has moved.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="rounded-md bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground"
           >
-            Go home
+            cd ~
+          </Link>
+          <Link
+            to="/blog"
+            className="rounded-md border border-white/20 px-4 py-2 font-mono text-sm text-terminal-fg hover:border-primary"
+          >
+            ls blog/
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
 function ErrorComponent({ error: rawError, reset }: { error: unknown; reset: () => void }) {
-  const error = rawError instanceof Error ? rawError : new Error(String(rawError));
+  const error = useMemo(
+    () => (rawError instanceof Error ? rawError : new Error(String(rawError))),
+    [rawError],
+  );
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -89,7 +108,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "_root — StyleNET Devs" },
       { name: "theme-color", content: "#0e1116" },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: ogImage },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: ogImage },
     ],
     links: [
       {
@@ -98,13 +119,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap",
-      },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
+    scripts: [{ children: themeInitScript }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -114,7 +131,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -134,6 +151,7 @@ function RootComponent() {
       <Nav />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <WhatsAppButton />
     </QueryClientProvider>
   );
 }
