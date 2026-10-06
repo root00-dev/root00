@@ -1,34 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { site } from "@/data/site";
+import { postBodies, readingMinutes } from "@/data/posts";
 import { Reveal } from "@/components/Reveal";
+import { seo } from "@/lib/seo";
+import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/blog")({
-  head: () => ({
-    meta: [
-      { title: `Blog — ${site.name}` },
-      {
-        name: "description",
-        content: `Notes on web development, VPS hosting and building software in Zimbabwe, by ${site.handle} of ${site.name}.`,
-      },
-      { property: "og:title", content: `Blog — ${site.name}` },
-      {
-        property: "og:description",
-        content: `Notes on web development, VPS hosting and building software in Zimbabwe.`,
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+export const Route = createFileRoute("/blog/")({
+  head: () =>
+    seo({
+      title: `Blog — ${site.handle} | ${site.name}`,
+      description: `Notes on web development, VPS hosting and building software in Zimbabwe, by ${site.handle} of ${site.name}.`,
+      path: "/blog",
+    }),
   component: BlogPage,
 });
-
-function formatDate(iso: string) {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 function BlogPage() {
   return (
@@ -40,23 +25,28 @@ function BlogPage() {
             Notes &amp; writing
           </h1>
           <span aria-hidden className="mb-2 h-px flex-1 bg-border" />
-          <span aria-hidden className="mb-2 font-mono text-xs text-primary">▮</span>
+          <span aria-hidden className="mb-2 font-mono text-xs text-primary">
+            ▮
+          </span>
         </div>
         <p className="mt-4 max-w-2xl text-muted-foreground">
-          Short notes on building software, running servers and keeping things
-          online — from Harare.
+          Short notes on building software, running servers and keeping things online — from Harare.
         </p>
       </Reveal>
 
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {site.posts.map((post, i) => (
           <Reveal key={post.slug} delay={i * 80}>
-            <article className="card-lift flex h-full flex-col rounded-lg border border-border bg-card p-6">
+            <Link
+              to="/blog/$slug"
+              params={{ slug: post.slug }}
+              className="card-lift group flex h-full flex-col rounded-lg border border-border bg-card p-6"
+            >
               <div className="flex items-center justify-between font-mono text-xs text-muted-foreground">
                 <span className="text-primary">{String(i + 1).padStart(3, "0")}</span>
                 <time dateTime={post.date}>{formatDate(post.date)}</time>
               </div>
-              <h2 className="mt-4 font-mono text-lg font-semibold leading-snug">
+              <h2 className="mt-4 font-mono text-lg font-semibold leading-snug group-hover:text-primary">
                 {post.title}
               </h2>
               <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
@@ -72,10 +62,13 @@ function BlogPage() {
                   </span>
                 ))}
               </div>
-              <p className="mt-5 font-mono text-xs text-muted-foreground">
-                Full post coming soon
+              <p className="mt-5 flex items-center justify-between font-mono text-xs text-muted-foreground">
+                <span>{readingMinutes(postBodies[post.slug] ?? [])} min read</span>
+                <span className="text-primary transition-transform group-hover:translate-x-1">
+                  Read →
+                </span>
               </p>
-            </article>
+            </Link>
           </Reveal>
         ))}
       </div>
@@ -83,10 +76,10 @@ function BlogPage() {
       <Reveal>
         <div className="mt-16 rounded-lg border border-border bg-card p-6 sm:flex sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
-            Want these posts in your inbox, or have a topic I should cover?
+            Have a topic I should cover, or a question about one of these posts?
           </p>
           <a
-            href={`mailto:${site.email}?subject=${encodeURIComponent("Blog — topic suggestion")}`}
+            href={`mailto:${site.email}?subject=${encodeURIComponent("Blog topic suggestion")}`}
             className="btn-hard mt-4 inline-block rounded-md bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground sm:mt-0"
           >
             Suggest a topic

@@ -2,7 +2,20 @@
 // EDIT EVERYTHING HERE. No markup changes needed.
 // ─────────────────────────────────────────────────────────────
 
+export type Project = {
+  title: string;
+  description: string;
+  tags: readonly string[];
+  /** Live site or case study. Leave out until there is something public to show. */
+  href?: string;
+  /** Public source code. */
+  repo?: string;
+};
+
 export const site = {
+  // Canonical public URL. Change this when a custom domain is connected;
+  // canonical tags, social cards, sitemap.xml and robots.txt all follow it.
+  url: "https://root00.vercel.app",
   handle: "_root",
   name: "StyleNET Devs",
   altName: "StyleNET IT Group",
@@ -17,7 +30,7 @@ export const site = {
   ],
   email: "hello@stylenet.co.zw",
   whatsapp: "+263771234567", // digits only for wa.me
-  github: "https://github.com/",
+  github: "https://github.com/root00-dev",
   sceneLabel: "SCULPTURE_V.03",
 
   about: [
@@ -43,39 +56,33 @@ export const site = {
       title: "StyleNET Hosting Panel",
       description: "Self-service client portal for provisioning and billing VPS plans.",
       tags: ["React", "Node", "PostgreSQL"],
-      link: "#contact",
     },
     {
       title: "Chiedza POS",
       description: "Offline-first point of sale built for small Zimbabwean retailers.",
       tags: ["TypeScript", "IndexedDB", "PWA"],
-      link: "#contact",
     },
     {
       title: "Deploy Kit",
       description: "One-command Nginx + Certbot + Node deploy scripts for fresh VPS boxes.",
       tags: ["Bash", "Nginx", "Linux"],
-      link: "#contact",
     },
     {
       title: "Msika API",
       description: "Marketplace backend with escrow-style payments and vendor payouts.",
       tags: ["Node", "REST", "Paynow"],
-      link: "#contact",
     },
     {
       title: "Uptime Sentinel",
       description: "Lightweight monitoring that pings client sites and alerts on WhatsApp.",
       tags: ["Python", "Cron", "Webhooks"],
-      link: "#contact",
     },
     {
       title: "Harare Devs Board",
       description: "Community job board for local developers and studios.",
       tags: ["React", "Supabase"],
-      link: "#contact",
     },
-  ],
+  ] as readonly Project[],
 
   posts: [
     {
@@ -101,6 +108,33 @@ export const site = {
         "Data is expensive and connections drop. What I learned building a POS that keeps working through both.",
       date: "2026-06-21",
       tags: ["PWA", "Case study"],
+    },
+  ],
+
+  process: [
+    {
+      step: "Discover",
+      command: "scope --brief",
+      description:
+        "A short call or WhatsApp chat about goals, budget and timeline. You get a written scope and quote before any work starts.",
+    },
+    {
+      step: "Build",
+      command: "git push",
+      description:
+        "Work happens in small, reviewable steps with preview links, so you see progress instead of waiting for a big reveal.",
+    },
+    {
+      step: "Deploy",
+      command: "deploy --prod",
+      description:
+        "Launched on a hardened server with SSL, backups and monitoring set up from day one — not bolted on later.",
+    },
+    {
+      step: "Maintain",
+      command: "uptime",
+      description:
+        "Updates, fixes and performance work after launch, from the same person who built it.",
     },
   ],
 

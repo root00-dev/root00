@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Hero } from "@/components/Hero";
-import { About, Projects, Services, Contact, Footer } from "@/components/Sections";
-import { site, mailLink } from "@/data/site";
+import { About, Projects, Services, Process, Contact, Footer } from "@/components/Sections";
+import { site } from "@/data/site";
+import { absoluteUrl, ogImage, seo } from "@/lib/seo";
 
 const title = "_root — Developer & Cloud Hosting | StyleNET Devs";
 const description =
@@ -15,33 +16,37 @@ const jsonLd = {
       name: "_root",
       alternateName: "Gladmore Chituku",
       jobTitle: "Software Developer",
-      email: mailLink,
+      url: absoluteUrl("/"),
+      image: ogImage,
+      email: site.email,
       address: { "@type": "PostalAddress", addressLocality: "Harare", addressCountry: "ZW" },
       worksFor: { "@type": "Organization", name: site.name },
       sameAs: [site.github],
     },
     {
-      "@type": "Organization",
+      "@type": "ProfessionalService",
       name: site.name,
+      url: absoluteUrl("/"),
+      image: ogImage,
+      email: site.email,
+      telephone: site.whatsapp,
       alternateName: site.altName,
       description: "Software development and cloud hosting (VPS) in Harare, Zimbabwe.",
       address: { "@type": "PostalAddress", addressLocality: "Harare", addressCountry: "ZW" },
+      areaServed: "ZW",
+      sameAs: [site.github],
+    },
+    {
+      "@type": "WebSite",
+      name: `${site.handle} — ${site.name}`,
+      url: absoluteUrl("/"),
     },
   ],
 };
 
 export const Route = createFileRoute("/")({
   head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
-    ],
+    ...seo({ title, description, path: "/" }),
     scripts: [
       {
         type: "application/ld+json",
@@ -66,6 +71,7 @@ function Index() {
         <About />
         <Projects />
         <Services />
+        <Process />
         <Contact />
       </main>
       <Footer />

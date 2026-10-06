@@ -2,6 +2,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import * as THREE from "three";
+import { THEME_EVENT } from "@/lib/theme";
 
 type Palette = { primary: string; secondary: string; metal: string };
 export type HeroPointer = { x: number; y: number; active: boolean };
@@ -48,8 +49,18 @@ function Sculpture({
       outer.current.rotation.z -= dt * 0.055;
       outer.current.rotation.y += dt * 0.035;
       outer.current.position.y = Math.sin(state.clock.elapsedTime * 0.55) * 0.08;
-      outer.current.rotation.x = THREE.MathUtils.damp(outer.current.rotation.x, 0.28 + (pointer.current.active ? pointer.current.y * 0.32 : 0), 2.5, dt);
-      outer.current.rotation.y = THREE.MathUtils.damp(outer.current.rotation.y, pointer.current.active ? pointer.current.x * 0.36 : 0, 2.5, dt);
+      outer.current.rotation.x = THREE.MathUtils.damp(
+        outer.current.rotation.x,
+        0.28 + (pointer.current.active ? pointer.current.y * 0.32 : 0),
+        2.5,
+        dt,
+      );
+      outer.current.rotation.y = THREE.MathUtils.damp(
+        outer.current.rotation.y,
+        pointer.current.active ? pointer.current.x * 0.36 : 0,
+        2.5,
+        dt,
+      );
     }
     if (onRotate && core.current) {
       report.current += dt;
@@ -67,7 +78,12 @@ function Sculpture({
       <pointLight position={[-4, -2, 2]} color={colors.secondary} intensity={22} />
       <Environment>
         <Lightformer intensity={2} position={[0, 5, 2]} scale={[10, 10, 1]} />
-        <Lightformer intensity={1} color={colors.secondary} position={[-5, 0, 1]} scale={[3, 8, 1]} />
+        <Lightformer
+          intensity={1}
+          color={colors.secondary}
+          position={[-5, 0, 1]}
+          scale={[3, 8, 1]}
+        />
       </Environment>
 
       <group ref={outer} rotation={[0.28, -0.2, -0.28]}>
@@ -87,14 +103,29 @@ function Sculpture({
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" args={[dots, 3]} />
           </bufferGeometry>
-          <pointsMaterial color={colors.secondary} size={0.028} transparent opacity={0.85} sizeAttenuation />
+          <pointsMaterial
+            color={colors.secondary}
+            size={0.028}
+            transparent
+            opacity={0.85}
+            sizeAttenuation
+          />
         </points>
       </group>
 
       <group ref={core} rotation={[0.3, 0.4, 0.12]}>
         <mesh>
           <icosahedronGeometry args={[1.33, 2]} />
-          <meshPhysicalMaterial color={colors.metal} metalness={0.8} roughness={0.28} flatShading transparent opacity={0.34} depthWrite={false} side={THREE.DoubleSide} />
+          <meshPhysicalMaterial
+            color={colors.metal}
+            metalness={0.8}
+            roughness={0.28}
+            flatShading
+            transparent
+            opacity={0.34}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+          />
         </mesh>
         <mesh scale={1.01}>
           <icosahedronGeometry args={[1.33, 2]} />
@@ -102,38 +133,73 @@ function Sculpture({
         </mesh>
         <mesh rotation={[0.3, 0.4, 0]}>
           <icosahedronGeometry args={[0.73, 1]} />
-          <meshPhysicalMaterial color={colors.secondary} metalness={0.65} roughness={0.2} flatShading />
+          <meshPhysicalMaterial
+            color={colors.secondary}
+            metalness={0.65}
+            roughness={0.2}
+            flatShading
+          />
         </mesh>
       </group>
     </>
   );
 }
 
+function readPalette(): Palette {
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    primary: styles.getPropertyValue("--scene-primary").trim(),
+    secondary: styles.getPropertyValue("--scene-secondary").trim(),
+    metal: styles.getPropertyValue("--scene-metal").trim(),
+  };
+}
+
 export function HeroScene({
   pointer,
   onRotate,
+  active = true,
 }: {
   pointer: RefObject<HeroPointer>;
   onRotate?: (info: RotateInfo) => void;
+  /** Pause rendering when the hero is off-screen or the tab is hidden. */
+  active?: boolean;
 }) {
   const [colors, setColors] = useState<Palette | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    const styles = getComputedStyle(document.documentElement);
-    setColors({
-      primary: styles.getPropertyValue("--scene-primary").trim(),
-      secondary: styles.getPropertyValue("--scene-secondary").trim(),
-      metal: styles.getPropertyValue("--scene-metal").trim(),
-    });
+    setColors(readPalette());
     setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+    // Theme can change via the toggle or the OS setting; re-read the CSS palette.
+    const refresh = () => requestAnimationFrame(() => setColors(readPalette()));
+    const scheme = window.matchMedia("(prefers-color-scheme: light)");
+    window.addEventListener(THEME_EVENT, refresh);
+    scheme.addEventListener("change", refresh);
+    return () => {
+      window.removeEventListener(THEME_EVENT, refresh);
+      scheme.removeEventListener("change", refresh);
+    };
   }, []);
 
   return (
-    <div aria-hidden="true" className="hero-scene pointer-events-none absolute inset-y-0 right-0 z-0 w-full lg:w-[59%]">
+    <div
+      aria-hidden="true"
+      className="hero-scene hero-scene-enter pointer-events-none absolute inset-y-0 right-0 z-0 w-full lg:w-[59%]"
+    >
       {colors && (
-        <Canvas camera={{ position: [0, 0, 8.5], fov: 48 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true }} frameloop={reducedMotion ? "demand" : "always"}>
-          <Sculpture colors={colors} reducedMotion={reducedMotion} pointer={pointer} onRotate={onRotate} />
+        <Canvas
+          camera={{ position: [0, 0, 8.5], fov: 48 }}
+          dpr={[1, 1.5]}
+          gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
+          frameloop={reducedMotion || !active ? "demand" : "always"}
+        >
+          <Sculpture
+            colors={colors}
+            reducedMotion={reducedMotion}
+            pointer={pointer}
+            onRotate={onRotate}
+          />
         </Canvas>
       )}
     </div>

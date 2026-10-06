@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { site } from "@/data/site";
+import { CommandMenu, OPEN_COMMAND_MENU } from "./CommandMenu";
+import { ThemeToggle } from "./ThemeToggle";
 
 // Anchors are absolute ("/#about") so they also work from other pages like /blog.
 const links = [
@@ -10,11 +13,19 @@ const links = [
   { href: "/blog", label: "Blog" },
 ];
 
+const openCommandMenu = () => window.dispatchEvent(new Event(OPEN_COMMAND_MENU));
+
 export function Nav() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState<string | null>(null);
+  const [isMac, setIsMac] = useState(true);
+
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad/.test(navigator.platform));
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -29,9 +40,10 @@ export function Nav() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
+    setActive(null);
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -46,37 +58,63 @@ export function Nav() {
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const isActive = (href: string) => {
+    const id = href.split("#")[1];
+    if (id) return pathname === "/" && active === id;
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors ${
-        scrolled ? "border-b border-border bg-background/85 backdrop-blur" : "border-b border-transparent"
+        scrolled || open
+          ? "border-b border-border bg-background/85 backdrop-blur"
+          : "border-b border-transparent"
       }`}
     >
-      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 sm:flex sm:justify-between">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5">
         <a href="/#top" className="flex min-w-0 items-center gap-2 font-mono text-sm font-bold">
           <span className="text-primary">$</span>
           <span className="truncate">{site.handle}</span>
-          <span className="hidden truncate text-muted-foreground sm:inline">/ {site.name}</span>
+          <span className="hidden truncate text-muted-foreground lg:inline">/ {site.name}</span>
         </a>
 
-        <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
-          {links.map((l) => {
-            const id = l.href.split("#")[1];
-            return (
-              <a
-                key={l.href}
-                href={l.href}
-                aria-current={id && active === id ? "true" : undefined}
-                className={`rounded-md px-3 py-2 font-mono text-sm transition-colors hover:bg-secondary hover:text-foreground ${
-                  id && active === id ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                {l.label}
-              </a>
-            );
-          })}
+        <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+          {links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              aria-current={isActive(l.href) ? "page" : undefined}
+              className={`rounded-md px-3 py-2 font-mono text-sm transition-colors hover:bg-secondary hover:text-foreground ${
+                isActive(l.href) ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              {l.label}
+            </a>
+          ))}
+          <button
+            type="button"
+            onClick={openCommandMenu}
+            aria-label="Open command menu"
+            className="ml-1 inline-flex h-9 items-center gap-1.5 rounded-md border border-border px-2.5 font-mono text-xs text-muted-foreground transition-colors hover:border-primary/60 hover:text-primary"
+          >
+            <kbd className="font-mono">{isMac ? "⌘" : "Ctrl"}</kbd>
+            <kbd className="font-mono">K</kbd>
+          </button>
+          <ThemeToggle className="ml-1" />
           <a
             href="/#contact"
             className="btn-hard ml-2 rounded-md bg-primary px-3.5 py-2 font-mono text-sm font-semibold text-primary-foreground"
@@ -85,40 +123,54 @@ export function Nav() {
           </a>
         </nav>
 
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          aria-label="Toggle navigation menu"
-          className="shrink-0 rounded-md border border-border px-3 py-2 font-mono text-sm sm:hidden"
-        >
-          {open ? "✕" : "☰"}
-        </button>
+        <div className="flex shrink-0 items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+            className="h-9 rounded-md border border-border px-3 font-mono text-sm"
+          >
+            {open ? "✕" : "☰"}
+          </button>
+        </div>
       </div>
 
       {open && (
         <nav
           id="mobile-nav"
           aria-label="Mobile"
-          className="border-t border-border bg-background px-5 py-3 sm:hidden"
+          className="border-t border-border bg-background px-5 py-3 md:hidden"
         >
           <ul className="flex flex-col">
-            {[...links, { href: "/#contact", label: "Hire me" }].map((l) => (
+            {links.map((l) => (
               <li key={l.label}>
                 <a
                   href={l.href}
                   onClick={() => setOpen(false)}
+                  aria-current={isActive(l.href) ? "page" : undefined}
                   className={`block rounded-md px-2 py-3 font-mono text-sm hover:text-foreground ${
-                    l.href.includes("#") && active === l.href.split("#")[1]
-                      ? "text-primary"
-                      : "text-muted-foreground"
+                    isActive(l.href) ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
-                  {l.label}
+                  <span aria-hidden className="mr-2 text-primary/60">
+                    ./
+                  </span>
+                  {l.label.toLowerCase()}
                 </a>
               </li>
             ))}
+            <li className="mt-2 border-t border-border pt-3">
+              <a
+                href="/#contact"
+                onClick={() => setOpen(false)}
+                className="btn-hard block rounded-md bg-primary px-3 py-3 text-center font-mono text-sm font-semibold text-primary-foreground"
+              >
+                Hire me
+              </a>
+            </li>
           </ul>
         </nav>
       )}
@@ -135,6 +187,7 @@ export function Nav() {
           style={{ transform: `scaleX(${progress})` }}
         />
       </div>
+      <CommandMenu />
     </header>
   );
 }
